@@ -80,7 +80,7 @@ fun ChatPanel(
                 color = MaterialTheme.colorScheme.onSurface
             )
             IconButton(onClick = onClose, modifier = Modifier.size(28.dp)) {
-                Icon(Icons.Default.Close, contentDescription = "Close", modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.Close, contentDescription = "Close", modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurface)
             }
         }
 

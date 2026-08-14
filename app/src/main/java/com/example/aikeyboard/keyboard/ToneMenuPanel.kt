@@ -65,6 +65,7 @@ fun ToneMenuPanel(
             )
             IconButton(onClick = onClose, modifier = Modifier.size(28.dp)) {
                 Icon(
+                    tint = MaterialTheme.colorScheme.onSurface,
                     imageVector = Icons.Default.Close,
                     contentDescription = "Close",
                     modifier = Modifier.size(18.dp)

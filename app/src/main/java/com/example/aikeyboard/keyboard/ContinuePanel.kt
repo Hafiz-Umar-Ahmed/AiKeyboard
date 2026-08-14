@@ -61,7 +61,7 @@ fun ContinuePanel(
                 color = MaterialTheme.colorScheme.onSurface
             )
             IconButton(onClick = onClose, modifier = Modifier.size(28.dp)) {
-                Icon(Icons.Default.Close, contentDescription = "Close", modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.Close, contentDescription = "Close",tint = MaterialTheme.colorScheme.onSurface,modifier = Modifier.size(18.dp))
             }
         }
 

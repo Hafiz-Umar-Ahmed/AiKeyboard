@@ -62,7 +62,8 @@ fun AiKeyboardTheme(
 ) {
     MaterialTheme(
         colorScheme = if (darkTheme) DarkColors else LightColors,
-        typography = AppTypography,
+        typography = if (darkTheme) DarkAppTypography
+                else LightAppTypography,
         content = content
     )
 }

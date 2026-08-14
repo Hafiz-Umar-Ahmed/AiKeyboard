@@ -63,7 +63,7 @@ fun GrammarCheckPanel(
                 color = MaterialTheme.colorScheme.onSurface
             )
             IconButton(onClick = onClose, modifier = Modifier.size(28.dp)) {
-                Icon(Icons.Default.Close, contentDescription = "Close", modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.Close, tint  = MaterialTheme.colorScheme.onSurface,contentDescription = "Close", modifier = Modifier.size(18.dp))
             }
         }
 
@@ -121,6 +121,7 @@ fun GrammarCheckPanel(
                     Spacer(Modifier.width(8.dp))
                     Button(onClick = onInsert) {
                         Icon(
+
                             imageVector = Icons.Default.Check,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
