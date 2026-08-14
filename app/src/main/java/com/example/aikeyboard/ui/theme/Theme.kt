@@ -1,58 +1,68 @@
 package com.example.aikeyboard.ui.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+private val LightColors = lightColorScheme(
+    primary = BlueAccentLight,
+    onPrimary = KeyWhite,
+    primaryContainer = PaleBlueContainer,
+    onPrimaryContainer = BlueAccentLight,
+    secondary = BlueAccentLight,
+    onSecondary = KeyWhite,
+    secondaryContainer = PaleBlueContainer,
+    onSecondaryContainer = BlueAccentLight,
+    background = PaleBluePage,
+    onBackground = NavyText,
+    surface = KeyWhite,
+    onSurface = NavyText,
+    surfaceVariant = PaleBluePage,
+    onSurfaceVariant = MutedNavy,
+    outline = LightOutline,
+    outlineVariant = LightOutline,
+    error = Color(0xFFE0483E),
+    onError = KeyWhite
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+private val DarkColors = darkColorScheme(
+    primary = BlueAccentDark,
+    onPrimary = Color(0xFF152049),
+    primaryContainer = DeepBlueContainer,
+    onPrimaryContainer = BlueAccentDark,
+    secondary = BlueAccentDark,
+    onSecondary = Color(0xFF152049),
+    secondaryContainer = DeepBlueContainer,
+    onSecondaryContainer = BlueAccentDark,
+    background = NearBlackPage,
+    onBackground = OffWhiteText,
+    surface = KeyDark,
+    onSurface = OffWhiteText,
+    surfaceVariant = NearBlackPage,
+    onSurfaceVariant = MutedLavender,
+    outline = DarkOutline,
+    outlineVariant = DarkOutline,
+    error = Color(0xFFFF6B61),
+    onError = Color(0xFF152049)
 )
 
+/**
+ * White (light mode) / near-black (dark mode) as the primary surface, with a
+ * single blue accent for interactive elements — matches the two-color design
+ * reference. Dynamic (Material You) color is intentionally NOT used here so
+ * the keyboard's branding stays consistent across all devices.
+ */
 @Composable
 fun AiKeyboardTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
     MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
+        colorScheme = if (darkTheme) DarkColors else LightColors,
+        typography = AppTypography,
         content = content
     )
 }

@@ -73,4 +73,42 @@ object TextFieldAccessor {
             ic.endBatchEdit()
         }
     }
+
+    /**
+     * Returns the ENTIRE field content regardless of selection — used to take
+     * a snapshot before an AI feature edits the field, so it can be restored
+     * later via [replaceEntireField] if the user taps Undo.
+     */
+    fun getFullText(ic: InputConnection?): String {
+        if (ic == null) return ""
+        val before = ic.getTextBeforeCursor(MAX_CHARS, 0)?.toString().orEmpty()
+        val selected = ic.getSelectedText(0)?.toString().orEmpty()
+        val after = ic.getTextAfterCursor(MAX_CHARS, 0)?.toString().orEmpty()
+        return before + selected + after
+    }
+
+    /**
+     * Replaces the ENTIRE field content with [text], discarding whatever
+     * selection/cursor state existed. Used to restore a snapshot taken by
+     * [getFullText] before an AI edit, when the user taps Undo.
+     */
+    fun replaceEntireField(ic: InputConnection?, text: String) {
+        if (ic == null) return
+        ic.beginBatchEdit()
+        try {
+            // Collapse any existing selection first so before/after below
+            // reflect the whole field, not just the unselected portion.
+            if (!ic.getSelectedText(0).isNullOrEmpty()) {
+                ic.commitText("", 1)
+            }
+            val before = ic.getTextBeforeCursor(MAX_CHARS, 0)?.toString().orEmpty()
+            val after = ic.getTextAfterCursor(MAX_CHARS, 0)?.toString().orEmpty()
+            if (before.isNotEmpty() || after.isNotEmpty()) {
+                ic.deleteSurroundingText(before.length, after.length)
+            }
+            ic.commitText(text, 1)
+        } finally {
+            ic.endBatchEdit()
+        }
+    }
 }

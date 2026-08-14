@@ -57,7 +57,11 @@ data class KeyboardUiState(
     // --- Chat feature ---
     val chatMessages: List<ChatMessage> = emptyList(),
     val chatDraft: String = "",
-    val isChatSending: Boolean = false
+    val isChatSending: Boolean = false,
+    // --- Undo ---
+    // Full field text captured immediately before the most recent AI insert
+    // (Tone/Grammar/Continue/Chat). Null once there's nothing left to undo.
+    val lastInsertSnapshot: String? = null
 )
 
 class KeyboardViewModel(context: Context) : ViewModel() {
@@ -144,10 +148,10 @@ class KeyboardViewModel(context: Context) : ViewModel() {
         }
     }
 
-    fun insertTonePreview(onInsert: (String) -> Unit) {
+    fun insertTonePreview(fieldSnapshot: String, onInsert: (String) -> Unit) {
         val text = _uiState.value.tonePreviewText ?: return
         onInsert(text)
-        _uiState.value = _uiState.value.copy(panel = AiPanelState.Hidden)
+        _uiState.value = _uiState.value.copy(panel = AiPanelState.Hidden, lastInsertSnapshot = fieldSnapshot)
     }
 
     // ---------- Grammar feature ----------
@@ -203,10 +207,10 @@ class KeyboardViewModel(context: Context) : ViewModel() {
         }
     }
 
-    fun insertGrammarFix(onInsert: (String) -> Unit) {
+    fun insertGrammarFix(fieldSnapshot: String, onInsert: (String) -> Unit) {
         val text = _uiState.value.grammarPreviewText ?: return
         onInsert(text)
-        _uiState.value = _uiState.value.copy(panel = AiPanelState.Hidden)
+        _uiState.value = _uiState.value.copy(panel = AiPanelState.Hidden, lastInsertSnapshot = fieldSnapshot)
     }
 
     // ---------- Continue-writing feature ----------
@@ -263,7 +267,7 @@ class KeyboardViewModel(context: Context) : ViewModel() {
         }
     }
 
-    fun insertContinuation(onInsert: (String) -> Unit) {
+    fun insertContinuation(fieldSnapshot: String, onInsert: (String) -> Unit) {
         val text = _uiState.value.continuePreviewText ?: return
         val source = _uiState.value.continueSourceText.orEmpty()
         val needsLeadingSpace = source.isNotEmpty() &&
@@ -272,7 +276,7 @@ class KeyboardViewModel(context: Context) : ViewModel() {
                 !text.first().isWhitespace()
 
         onInsert(if (needsLeadingSpace) " $text" else text)
-        _uiState.value = _uiState.value.copy(panel = AiPanelState.Hidden)
+        _uiState.value = _uiState.value.copy(panel = AiPanelState.Hidden, lastInsertSnapshot = fieldSnapshot)
     }
 
     // ---------- Chat feature ----------
@@ -280,6 +284,7 @@ class KeyboardViewModel(context: Context) : ViewModel() {
         _uiState.value = _uiState.value.copy(chatDraft = _uiState.value.chatDraft + text)
     }
 
+    /** Backspace on the reused QWERTY rows while composing a chat prompt. */
     fun backspaceChatDraft() {
         val current = _uiState.value.chatDraft
         if (current.isNotEmpty()) {
@@ -344,9 +349,21 @@ class KeyboardViewModel(context: Context) : ViewModel() {
         }
     }
 
-    fun insertChatMessage(message: ChatMessage, onInsert: (String) -> Unit) {
+    fun insertChatMessage(message: ChatMessage, fieldSnapshot: String, onInsert: (String) -> Unit) {
         onInsert(message.text)
-        _uiState.value = _uiState.value.copy(panel = AiPanelState.Hidden)
+        _uiState.value = _uiState.value.copy(panel = AiPanelState.Hidden, lastInsertSnapshot = fieldSnapshot)
+    }
+    // ---------- Undo ----------
+
+    /**
+     * Restores the field to how it was immediately before the most recent AI
+     * insert (Tone/Grammar/Continue/Chat), via [onRestore]. Single-level —
+     * once used, there's nothing left to undo until the next AI insert.
+     */
+    fun undoLastInsert(onRestore: (String) -> Unit) {
+        val snapshot = _uiState.value.lastInsertSnapshot ?: return
+        onRestore(snapshot)
+        _uiState.value = _uiState.value.copy(lastInsertSnapshot = null)
     }
 }
 

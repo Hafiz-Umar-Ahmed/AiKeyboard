@@ -59,6 +59,9 @@ fun AIKeyboardKey(
     soundOnClick: Boolean,
     modifier: Modifier = Modifier,
     isSpecial: Boolean = false, // Styles special keys (Backspace, Enter, Toolbar) differently
+    // Tints the key's text/icon with the brand accent color regardless of
+    // `isSpecial` — used for shift and backspace to match the design reference.
+    accentColor: Boolean = false,
     // When non-null, key presses go here instead of the real input field — used
     // by the Chat panel to type into its local draft while it's open.
     onKeyAction: ((KeyAction) -> Unit)? = null
@@ -82,7 +85,11 @@ fun AIKeyboardKey(
         MaterialTheme.colorScheme.primaryContainer
     }
 
-    val keyInfoColor = if (isSpecial) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
+    val keyInfoColor = when {
+        accentColor -> MaterialTheme.colorScheme.primary
+        isSpecial -> MaterialTheme.colorScheme.onSurfaceVariant
+        else -> MaterialTheme.colorScheme.onSurface
+    }
 
     fun soundAndVibrate() {
         if (vibrateOnClick) {
