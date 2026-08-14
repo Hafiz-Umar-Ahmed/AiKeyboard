@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#303030"
+    android:padding="4dp">
+
+    <!-- Row 1 -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button android:id="@+id/keyQ" android:text="Q" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyW" android:text="W" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyE" android:text="E" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyR" android:text="R" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyT" android:text="T" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyY" android:text="Y" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyU" android:text="U" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyI" android:text="I" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyO" android:text="O" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyP" android:text="P" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+
+    </LinearLayout>
+
+    <!-- Row 2 -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Space
+            android:layout_width="18dp"
+            android:layout_height="1dp"/>
+
+        <Button android:id="@+id/keyA" android:text="A" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyS" android:text="S" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyD" android:text="D" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyF" android:text="F" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyG" android:text="G" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyH" android:text="H" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyJ" android:text="J" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyK" android:text="K" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyL" android:text="L" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+
+        <Space
+            android:layout_width="18dp"
+            android:layout_height="1dp"/>
+
+    </LinearLayout>
+
+    <!-- Row 3 -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/keyShift"
+            android:text="↑"
+            android:layout_width="60dp"
+            android:layout_height="48dp"/>
+
+        <Button android:id="@+id/keyZ" android:text="Z" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyX" android:text="X" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyC" android:text="C" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyV" android:text="V" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyB" android:text="B" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyN" android:text="N" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+        <Button android:id="@+id/keyM" android:text="M" android:layout_weight="1" android:layout_width="0dp" android:layout_height="48dp"/>
+
+        <Button
+            android:id="@+id/keyBackspace"
+            android:text="⌫"
+            android:layout_width="60dp"
+            android:layout_height="48dp"/>
+
+    </LinearLayout>
+
+    <!-- Row 4 -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/key123"
+            android:text="123"
+            android:layout_width="70dp"
+            android:layout_height="48dp"/>
+
+        <Button
+            android:id="@+id/keySpace"
+            android:text="Space"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="48dp"/>
+
+        <Button
+            android:id="@+id/keyEnter"
+            android:text="Enter"
+            android:layout_width="80dp"
+            android:layout_height="48dp"/>
+
+    </LinearLayout>
+
+</LinearLayout>
