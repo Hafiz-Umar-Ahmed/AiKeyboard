@@ -28,7 +28,7 @@ It's backed by a multi-provider AI router that automatically fails over between 
 - **Tone Rewrite** — pick from 7 tones (Professional, Friendly, Concise, Confident, Empathetic, Formal, Witty); preview the rewrite before it touches your text.
 - **Grammar Fix** — one-tap spelling/grammar/punctuation correction, with a "no mistakes found" state so it doesn't feel like it's making work up.
 - **Continue Writing** — suggests 1–3 sentences that continue naturally from what you've already typed, appended at the cursor rather than replacing anything.
-- **AI Chat** — a full chat popup, typed with the keyboard's own keys (see [Architecture Highlights](#architecture-highlights) for how that works without a keyboard-inside-a-keyboard problem), with per-reply "Insert" buttons.
+- **AI Chat** — a full chat popup, typed with the keyboard's own keys, with per-reply "Insert" buttons.
 - **Undo, everywhere** — every AI insert snapshots your field's full text first. One tap restores it if the AI got it wrong.
 - **Built-in emoji picker** and a **numbers/symbols panel** (two pages, like a standard system keyboard).
 - **Light & dark themes** — a strict two-surface (white / greyish-black) plus one blue accent design system, not tied to Android's wallpaper-based dynamic color.
@@ -38,7 +38,7 @@ It's backed by a multi-provider AI router that automatically fails over between 
 
 All four features go through one `AiRouter`. It holds your configured providers in priority order (Gemini → DeepSeek → ChatGPT), skips anything currently in a rate-limit cooldown, and tries each until one succeeds:
 
-![Architecture diagram](architecture-diagram.svg)
+![Architecture diagram](asset/architecture-diagram.png)
 
 ## 🏗️ Tech Stack
 
