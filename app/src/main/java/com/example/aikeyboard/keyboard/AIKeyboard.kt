@@ -1,15 +1,24 @@
 package com.example.aikeyboard.keyboard
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Context.AUDIO_SERVICE
+import android.media.AudioManager
 import android.os.Build
 import android.view.HapticFeedbackConstants
+import android.view.inputmethod.InputMethodManager
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,7 +31,8 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EmojiEmotions
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.KeyboardReturn
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,6 +44,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,24 +53,26 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.aikeyboard.R
 import com.example.aikeyboard.service.KeyboardService
 import com.example.aikeyboard.service.TextFieldAccessor
 import com.example.aikeyboard.service.performKeyAction
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 
-// --- STRICT UI STANDARDS ---
-private const val KEY_RADIUS = 6f
-private const val KEY_PADDING = 4 // 4dp per side = 8dp total gap between keys
-private const val KEY_HEIGHT = 42f
-private const val KEY_HEIGHT_DP = 42
-
-// Weights based on standard 32dp key (32 / 32 = 1f)
-private const val WEIGHT_STANDARD = 1f          // 32dp
-private const val WEIGHT_ACTION = 1.375f        // 44dp / 32dp
-private const val WEIGHT_SPACEBAR = 5.125f      // 164dp / 32dp
+// Shared key styling matching the precise reference geometry.
+private const val KEY_RADIUS = 8f
+private const val KEY_PADDING = 0 // Padding is handled cleanly by Arrangement.spacedBy
 
 @Composable
 fun AIKeyBoard() {
@@ -78,14 +91,26 @@ fun AIKeyBoard() {
     val row2 = listOf("a", "s", "d", "f", "g", "h", "j", "k", "l")
     val row3 = listOf("z", "x", "c", "v", "b", "n", "m")
 
+    val onGlobeClick = {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            ime.switchToNextInputMethod(false)
+        } else {
+            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showInputMethodPicker()
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            // Set the overall keyboard background to a subtle tone
             .background(MaterialTheme.colorScheme.background)
-            .padding(vertical = 4.dp, horizontal = 4.dp) // 4dp edge margins
+            // Left/Right 6dp outer padding to match reference exactly
+            .padding(start = 6.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
+        // 6dp vertical gap between key rows
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        // --- AI TOOLBAR ---
+        // --- AI TOOLBAR / SUGGESTION BAR AREA ---
+        // Acts geometrically as the suggestion bar (height 48px)
         AIToolBar(
             activePanel = uiState.panel,
             canUndo = uiState.lastInsertSnapshot != null,
@@ -100,7 +125,8 @@ fun AIKeyBoard() {
             }
         )
 
-        Spacer(modifier = Modifier.height(4.dp))
+        // ~10px vertical gap after suggestion bar equivalent
+        Spacer(modifier = Modifier.height(10.dp))
 
         // --- KEY AREA: either the QWERTY rows, an AI panel, or the emoji picker ---
         when (uiState.panel) {
@@ -184,7 +210,7 @@ fun AIKeyBoard() {
             }
 
             AiPanelState.Chat -> {
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     ChatPanel(
                         messages = uiState.chatMessages,
                         draft = uiState.chatDraft,
@@ -200,13 +226,12 @@ fun AIKeyBoard() {
                         onClose = { viewModel.closePanel() }
                     )
 
-                    Spacer(modifier = Modifier.height(4.dp))
-
                     if (showSymbolsPanel) {
                         SymbolsKeyRows(
                             onLettersClick = { showSymbolsPanel = false },
                             onKeyAction = { action -> handleChatKeyAction(action, viewModel) },
-                            onEmojiClick = null
+                            onEmojiClick = null,
+                            onGlobeClick = { onGlobeClick() }
                         )
                     } else {
                         StandardKeyRows(
@@ -217,7 +242,8 @@ fun AIKeyBoard() {
                             onShiftClick = { isShifted = !isShifted },
                             onSymbolsClick = { showSymbolsPanel = true },
                             onKeyAction = { action -> handleChatKeyAction(action, viewModel) },
-                            onEmojiClick = null
+                            onEmojiClick = null,
+                            onGlobeClick = { onGlobeClick() }
                         )
                     }
                 }
@@ -235,7 +261,8 @@ fun AIKeyBoard() {
                 } else if (showSymbolsPanel) {
                     SymbolsKeyRows(
                         onLettersClick = { showSymbolsPanel = false },
-                        onEmojiClick = { showEmojiPanel = true }
+                        onEmojiClick = { showEmojiPanel = true },
+                        onGlobeClick = { onGlobeClick() }
                     )
                 } else {
                     StandardKeyRows(
@@ -245,7 +272,8 @@ fun AIKeyBoard() {
                         isShifted = isShifted,
                         onShiftClick = { isShifted = !isShifted },
                         onSymbolsClick = { showSymbolsPanel = true },
-                        onEmojiClick = { showEmojiPanel = true }
+                        onEmojiClick = { showEmojiPanel = true },
+                        onGlobeClick = { onGlobeClick() }
                     )
                 }
             }
@@ -253,13 +281,12 @@ fun AIKeyBoard() {
 
         Spacer(
             modifier = Modifier.height(
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) 40.dp else 4.dp
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) 40.dp else 0.dp
             )
         )
     }
 }
 
-/** Routes a key press typed on the reused QWERTY rows into the chat draft instead of the real field. */
 private fun handleChatKeyAction(action: KeyAction, viewModel: KeyboardViewModel) {
     when (action) {
         is KeyAction.CommitText -> viewModel.appendChatDraft(action.text)
@@ -270,7 +297,8 @@ private fun handleChatKeyAction(action: KeyAction, viewModel: KeyboardViewModel)
 }
 
 /**
- * The standard QWERTY rows.
+ * Standard QWERTY layout optimized for responsive proportions.
+ * The visual grid total weight is exactly 10 across all rows.
  */
 @Composable
 private fun StandardKeyRows(
@@ -281,43 +309,50 @@ private fun StandardKeyRows(
     onShiftClick: () -> Unit,
     onSymbolsClick: () -> Unit,
     onKeyAction: ((KeyAction) -> Unit)? = null,
-    onEmojiClick: (() -> Unit)? = null
+    onEmojiClick: (() -> Unit)? = null,
+    onGlobeClick: (() -> Unit)? = null
 ) {
-    // Apply shift formatting
     val r1 = if (isShifted) row1.map { it.uppercase() } else row1
     val r2 = if (isShifted) row2.map { it.uppercase() } else row2
     val r3 = if (isShifted) row3.map { it.uppercase() } else row3
 
-    // --- ROW 1 ---
-    Row(modifier = Modifier.fillMaxWidth()) {
+    // ROW 1 - 10 equal keys (approx 38-39px each)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(5.dp) // 5px horizontal gap
+    ) {
         r1.forEach { item ->
-            KeyboardTextKey(text = item, weight = WEIGHT_STANDARD, onKeyAction = onKeyAction)
+            KeyboardTextKey(text = item, weight = 1f, onKeyAction = onKeyAction)
         }
     }
 
-    // --- ROW 2 (Staggered offset) ---
+    // ROW 2 - 9 keys with exact 25.dp side indent padding
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 25.dp), // ~25px indent matches reference perfectly
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         r2.forEach { item ->
-            KeyboardTextKey(text = item, weight = WEIGHT_STANDARD, onKeyAction = onKeyAction)
+            KeyboardTextKey(text = item, weight = 1f, onKeyAction = onKeyAction)
         }
     }
 
-    // --- ROW 3 (Shift + Z...M + Backspace) ---
-    Row(modifier = Modifier.fillMaxWidth()) {
+    // ROW 3 - Shift (1.5), 7 keys (7), Backspace (1.5) (Total = 10)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
         AccessoryIconKey(
             icon = Icons.Default.KeyboardArrowUp,
             contentDescription = "Shift",
-            weight = WEIGHT_ACTION,
+            weight = 1.5f,
             isActive = isShifted,
             onClick = onShiftClick
         )
 
         r3.forEach { item ->
-            KeyboardTextKey(text = item, weight = WEIGHT_STANDARD, onKeyAction = onKeyAction)
+            KeyboardTextKey(text = item, weight = 1f, onKeyAction = onKeyAction)
         }
 
         AIKeyboardKey(
@@ -329,53 +364,62 @@ private fun StandardKeyRows(
                 )
             ),
             vibrateOnClick = true, soundOnClick = true, keyPadding = KEY_PADDING,
-            keyHeight = KEY_HEIGHT, keyWidth = 44f, keyBorderWidth = 0f, keyRadius = KEY_RADIUS,
-            modifier = Modifier.weight(WEIGHT_ACTION),
+            keyHeight = 50f, keyWidth = 32f, keyBorderWidth = 0f, keyRadius = KEY_RADIUS,
+            modifier = Modifier.weight(1.5f),
             isSpecial = true,
             accentColor = true,
             onKeyAction = onKeyAction
         )
     }
 
-    // --- ROW 4 (123, emoji, comma, space, dot, Return) ---
-    Row(modifier = Modifier.fillMaxWidth()) {
-        AccessoryTextKey(text = "?123", weight = WEIGHT_ACTION, onClick = onSymbolsClick)
+    // ROW 4 - ?123, Emoji, Globe, Space, Period, Search (Total = 10)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        AccessoryTextKey(text = "?123", weight = 1.3f, onClick = onSymbolsClick)
 
         AccessoryIconKey(
             icon = Icons.Default.EmojiEmotions,
             contentDescription = "Emoji",
-            weight = WEIGHT_STANDARD,
+            weight = 1f,
             onClick = onEmojiClick
         )
 
-        KeyboardTextKey(text = ",", weight = WEIGHT_STANDARD, onKeyAction = onKeyAction)
+        AccessoryIconKey(
+            icon = Icons.Default.Language,
+            contentDescription = "Language",
+            weight = 1f,
+            onClick = onGlobeClick
+        )
 
         AIKeyboardKey(
             key = KeyItem(
                 keyAction = KeyAction.CommitText(text = " "),
-                keyType = KeyType.KeyText(value = "space")
+                keyType = KeyType.KeyText(value = "English") // Sets language label
             ),
             vibrateOnClick = true, soundOnClick = true, keyPadding = KEY_PADDING,
-            keyHeight = KEY_HEIGHT, keyWidth = 164f, keyBorderWidth = 0f, keyRadius = KEY_RADIUS,
-            modifier = Modifier.weight(WEIGHT_SPACEBAR),
+            keyHeight = 50f, keyWidth = 145f, keyBorderWidth = 0f, keyRadius = KEY_RADIUS,
+            modifier = Modifier.weight(4.4f),
             isSpecial = true,
             onKeyAction = onKeyAction
         )
 
-        KeyboardTextKey(text = ".", weight = WEIGHT_STANDARD, onKeyAction = onKeyAction)
+        KeyboardTextKey(text = ".", weight = 1f, onKeyAction = onKeyAction)
 
         AIKeyboardKey(
             key = KeyItem(
                 keyAction = KeyAction.Enter,
                 keyType = KeyType.KeyIcon(
-                    icon = Icons.Default.KeyboardReturn,
+                    icon = Icons.Default.Search,
                     description = R.string.enter
                 )
             ),
             vibrateOnClick = true, soundOnClick = true, keyPadding = KEY_PADDING,
-            keyHeight = KEY_HEIGHT, keyWidth = 44f, keyBorderWidth = 0f, keyRadius = KEY_RADIUS,
-            modifier = Modifier.weight(WEIGHT_ACTION),
+            keyHeight = 50f, keyWidth = 32f, keyBorderWidth = 0f, keyRadius = KEY_RADIUS,
+            modifier = Modifier.weight(1.3f),
             isSpecial = true,
+            accentColor = true, // Uses primary color like default enter actions
             onKeyAction = onKeyAction
         )
     }
@@ -388,24 +432,25 @@ private fun StandardKeyRows(
 private fun SymbolsKeyRows(
     onLettersClick: () -> Unit,
     onKeyAction: ((KeyAction) -> Unit)? = null,
-    onEmojiClick: (() -> Unit)? = null
+    onEmojiClick: (() -> Unit)? = null,
+    onGlobeClick: (() -> Unit)? = null
 ) {
     val symRow1 = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
     val symRow2 = listOf("@", "#", "$", "%", "&", "-", "+", "(", ")", "/")
     val symRow3 = listOf("*", "\"", "'", ":", ";", "!", "?")
 
-    Row(modifier = Modifier.fillMaxWidth()) {
-        symRow1.forEach { KeyboardTextKey(text = it, weight = WEIGHT_STANDARD, onKeyAction = onKeyAction) }
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        symRow1.forEach { KeyboardTextKey(text = it, weight = 1f, onKeyAction = onKeyAction) }
     }
 
-    Row(modifier = Modifier.fillMaxWidth()) {
-        symRow2.forEach { KeyboardTextKey(text = it, weight = WEIGHT_STANDARD, onKeyAction = onKeyAction) }
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        symRow2.forEach { KeyboardTextKey(text = it, weight = 1f, onKeyAction = onKeyAction) }
     }
 
-    Row(modifier = Modifier.fillMaxWidth()) {
-        KeyboardTextKey(text = "=", weight = WEIGHT_ACTION, isSpecial = true, onKeyAction = onKeyAction)
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        KeyboardTextKey(text = "=", weight = 1.5f, isSpecial = true, onKeyAction = onKeyAction)
 
-        symRow3.forEach { KeyboardTextKey(text = it, weight = WEIGHT_STANDARD, onKeyAction = onKeyAction) }
+        symRow3.forEach { KeyboardTextKey(text = it, weight = 1f, onKeyAction = onKeyAction) }
 
         AIKeyboardKey(
             key = KeyItem(
@@ -416,52 +461,58 @@ private fun SymbolsKeyRows(
                 )
             ),
             vibrateOnClick = true, soundOnClick = true, keyPadding = KEY_PADDING,
-            keyHeight = KEY_HEIGHT, keyWidth = 44f, keyBorderWidth = 0f, keyRadius = KEY_RADIUS,
-            modifier = Modifier.weight(WEIGHT_ACTION),
+            keyHeight = 50f, keyWidth = 32f, keyBorderWidth = 0f, keyRadius = KEY_RADIUS,
+            modifier = Modifier.weight(1.5f),
             isSpecial = true,
             accentColor = true,
             onKeyAction = onKeyAction
         )
     }
 
-    Row(modifier = Modifier.fillMaxWidth()) {
-        AccessoryTextKey(text = "ABC", weight = WEIGHT_ACTION, onClick = onLettersClick)
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        AccessoryTextKey(text = "ABC", weight = 1.3f, onClick = onLettersClick)
 
         AccessoryIconKey(
             icon = Icons.Default.EmojiEmotions,
             contentDescription = "Emoji",
-            weight = WEIGHT_STANDARD,
+            weight = 1f,
             onClick = onEmojiClick
         )
 
-        KeyboardTextKey(text = ",", weight = WEIGHT_STANDARD, onKeyAction = onKeyAction)
+        AccessoryIconKey(
+            icon = Icons.Default.Language,
+            contentDescription = "Language",
+            weight = 1f,
+            onClick = onGlobeClick
+        )
 
         AIKeyboardKey(
             key = KeyItem(
                 keyAction = KeyAction.CommitText(text = " "),
-                keyType = KeyType.KeyText(value = "space")
+                keyType = KeyType.KeyText(value = "English")
             ),
             vibrateOnClick = true, soundOnClick = true, keyPadding = KEY_PADDING,
-            keyHeight = KEY_HEIGHT, keyWidth = 164f, keyBorderWidth = 0f, keyRadius = KEY_RADIUS,
-            modifier = Modifier.weight(WEIGHT_SPACEBAR),
+            keyHeight = 50f, keyWidth = 145f, keyBorderWidth = 0f, keyRadius = KEY_RADIUS,
+            modifier = Modifier.weight(4.4f),
             isSpecial = true,
             onKeyAction = onKeyAction
         )
 
-        KeyboardTextKey(text = ".", weight = WEIGHT_STANDARD, onKeyAction = onKeyAction)
+        KeyboardTextKey(text = ".", weight = 1f, onKeyAction = onKeyAction)
 
         AIKeyboardKey(
             key = KeyItem(
                 keyAction = KeyAction.Enter,
                 keyType = KeyType.KeyIcon(
-                    icon = Icons.Default.KeyboardReturn,
+                    icon = Icons.Default.Search,
                     description = R.string.enter
                 )
             ),
             vibrateOnClick = true, soundOnClick = true, keyPadding = KEY_PADDING,
-            keyHeight = KEY_HEIGHT, keyWidth = 44f, keyBorderWidth = 0f, keyRadius = KEY_RADIUS,
-            modifier = Modifier.weight(WEIGHT_ACTION),
+            keyHeight = 50f, keyWidth = 32f, keyBorderWidth = 0f, keyRadius = KEY_RADIUS,
+            modifier = Modifier.weight(1.3f),
             isSpecial = true,
+            accentColor = true,
             onKeyAction = onKeyAction
         )
     }
@@ -484,7 +535,7 @@ fun RowScope.KeyboardTextKey(
         vibrateOnClick = true,
         soundOnClick = true,
         keyPadding = KEY_PADDING,
-        keyHeight = KEY_HEIGHT,
+        keyHeight = 50f,
         keyWidth = 32f,
         keyBorderWidth = 0f,
         keyRadius = KEY_RADIUS,
@@ -510,7 +561,7 @@ private fun RowScope.AccessoryTextKey(
     Box(
         modifier = Modifier
             .weight(weight)
-            .height(KEY_HEIGHT_DP.dp)
+            .height(50.dp)
             .padding(KEY_PADDING.dp)
             .shadow(elevation = 1.dp, shape = RoundedCornerShape(KEY_RADIUS.dp))
             .clip(RoundedCornerShape(KEY_RADIUS.dp))
@@ -529,7 +580,7 @@ private fun RowScope.AccessoryTextKey(
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.titleMedium,
+            fontSize = 15.sp, // Reduced font size for labels
             color = if (enabled) {
                 MaterialTheme.colorScheme.onSurfaceVariant
             } else {
@@ -559,7 +610,7 @@ private fun RowScope.AccessoryIconKey(
     Box(
         modifier = Modifier
             .weight(weight)
-            .height(KEY_HEIGHT_DP.dp)
+            .height(50.dp)
             .padding(KEY_PADDING.dp)
             .shadow(elevation = 1.dp, shape = RoundedCornerShape(KEY_RADIUS.dp))
             .clip(RoundedCornerShape(KEY_RADIUS.dp))
@@ -589,15 +640,11 @@ private fun RowScope.AccessoryIconKey(
             } else {
                 MaterialTheme.colorScheme.onSurfaceVariant
             },
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(24.dp)
         )
     }
 }
 
-// UI for the AI feature row above the keyboard. Whichever icon's panel is
-// currently open is tinted primary so there's a clear sense of active state.
-// The 5th icon (undo) restores the field to how it was before the most
-// recent AI insert, dimmed/disabled when there's nothing to undo.
 @Composable
 fun AIToolBar(
     activePanel: AiPanelState,
@@ -611,9 +658,8 @@ fun AIToolBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
-            // Toolbar gets a slightly different background shade
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .height(48.dp) // Suggestion bar height reference
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
             .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly
