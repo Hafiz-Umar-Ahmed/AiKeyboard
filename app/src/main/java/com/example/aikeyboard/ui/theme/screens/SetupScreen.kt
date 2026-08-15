@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Keyboard
@@ -52,13 +53,29 @@ fun SetupScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(
-
-                imageVector = Icons.Default.Keyboard,
-                contentDescription = null,
-                modifier = Modifier.size(56.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
+            Box(
+                modifier = Modifier.size(72.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                // Base Keyboard
+                Icon(
+                    imageVector = Icons.Default.Keyboard,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(56.dp)
+                        .align(Alignment.BottomStart),
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+                // Overlapping AI Sparkle
+                Icon(
+                    imageVector = Icons.Default.AutoAwesome,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .align(Alignment.TopEnd),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
             Spacer(Modifier.height(16.dp))
             Text(
                 "AI Keyboard",

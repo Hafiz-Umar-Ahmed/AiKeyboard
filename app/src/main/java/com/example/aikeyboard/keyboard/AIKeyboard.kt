@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardReturn
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.CheckCircle
@@ -411,7 +412,7 @@ private fun StandardKeyRows(
             key = KeyItem(
                 keyAction = KeyAction.Enter,
                 keyType = KeyType.KeyIcon(
-                    icon = Icons.Default.Search,
+                    icon = Icons.AutoMirrored.Default.KeyboardReturn,
                     description = R.string.enter
                 )
             ),
