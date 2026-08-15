@@ -1,47 +1,46 @@
 # AI Keyboard
 
-A custom Android keyboard (IME) built with Jetpack Compose that puts four AI-powered writing
-tools — tone rewriting, grammar fixing, continuation, and a chat assistant — directly on the
-keys, without ever leaving the app you're typing into.
+A custom Android keyboard (IME) built with Jetpack Compose that puts four AI-powered writing tools — tone rewriting, grammar fixing, continuation, and a chat assistant — directly on the keys, without ever leaving the app you're typing into.
 
-It's backed by a multi-provider AI router that automatically fails over between Gemini,
-DeepSeek, and ChatGPT, so a single provider hitting its free-tier rate limit doesn't take the
-whole feature down.
+It's backed by a multi-provider AI router that automatically fails over between Gemini, DeepSeek, and ChatGPT, so a single provider hitting its free-tier rate limit doesn't take the whole feature down.
 
-![Working Demo](asset/video.mp4)![Startup Screen](asset/image3.jpeg)![Emoji Picker](asset/imag6.jpeg)
+**🎥 Working Demo:**
+<img src="asset/video.mp4" width="200"/>
 
 ---
 
-## Features
-![Tone Rewrite Feature](asset/image8.jpeg)![Grammar Fix Feature](asset/image5.jpeg)![AI Chat Feature](asset/image7.jpeg)![Continue Writing Feature](asset/image9.jpeg)
-- **Tone Rewrite** — pick from 7 tones (Professional, Friendly, Concise, Confident, Empathetic,
-  Formal, Witty); preview the rewrite before it touches your text.
-- **Grammar Fix** — one-tap spelling/grammar/punctuation correction, with a "no mistakes found"
-  state so it doesn't feel like it's making work up.
-- **Continue Writing** — suggests 1–3 sentences that continue naturally from what you've already
-  typed, appended at the cursor rather than replacing anything.
-- **AI Chat** — a full chat popup, typed with the keyboard's own keys (see
-  [Architecture Highlights](#architecture-highlights) for how that works without a keyboard-inside-a-keyboard
-  problem), with per-reply "Insert" buttons.
-- **Undo, everywhere** — every AI insert snapshots your field's full text first. One tap restores
-  it if the AI got it wrong.
-- **Built-in emoji picker** and a **numbers/symbols panel** (two pages, like a standard system
-  keyboard).
-- **Light & dark themes** — a strict two-surface (white / greyish-black) plus one blue accent
-  design system, not tied to Android's wallpaper-based dynamic color.
-  ![Dark Theme](asset/image2.jpeg)![Dark Theme](asset/image7.jpeg)![Light Theme](asset/image2.jpeg)![Light Theme](asset/image1.jpeg)
-- **Bring-your-own-keys** — API keys are entered in-app and stored with `EncryptedSharedPreferences`;
-  nothing is hardcoded or sent anywhere except the provider you configured.
+## 📸 Screenshots
 
-## How It Works — Multi-Provider AI
+**AI Features**
+| Tone Rewrite | Grammar Fix | AI Chat | Continue Writing |
+|----------|----------|----------|----------|
+| <img src="asset/image8.jpeg" width="200"/> | <img src="asset/image5.jpeg" width="200"/> | <img src="asset/image7.jpeg" width="200"/> | <img src="asset/image9.jpeg" width="200"/> |
 
-All four features go through one `AiRouter`. It holds your configured providers in priority
-order (Gemini → DeepSeek → ChatGPT), skips anything currently in a rate-limit cooldown, and
-tries each until one succeeds:
+**Keyboard UI & Themes**
+| Startup Screen | Emoji Picker | Dark Theme | Light Theme |
+|----------|----------|----------|----------|
+| <img src="asset/image3.jpeg" width="200"/> | <img src="asset/image6.jpeg" width="200"/> | <img src="asset/image2.jpeg" width="200"/> | <img src="asset/image1.jpeg" width="200"/> |
+
+---
+
+## ✨ Features
+
+- **Tone Rewrite** — pick from 7 tones (Professional, Friendly, Concise, Confident, Empathetic, Formal, Witty); preview the rewrite before it touches your text.
+- **Grammar Fix** — one-tap spelling/grammar/punctuation correction, with a "no mistakes found" state so it doesn't feel like it's making work up.
+- **Continue Writing** — suggests 1–3 sentences that continue naturally from what you've already typed, appended at the cursor rather than replacing anything.
+- **AI Chat** — a full chat popup, typed with the keyboard's own keys (see [Architecture Highlights](#architecture-highlights) for how that works without a keyboard-inside-a-keyboard problem), with per-reply "Insert" buttons.
+- **Undo, everywhere** — every AI insert snapshots your field's full text first. One tap restores it if the AI got it wrong.
+- **Built-in emoji picker** and a **numbers/symbols panel** (two pages, like a standard system keyboard).
+- **Light & dark themes** — a strict two-surface (white / greyish-black) plus one blue accent design system, not tied to Android's wallpaper-based dynamic color.
+- **Bring-your-own-keys** — API keys are entered in-app and stored with `EncryptedSharedPreferences`; nothing is hardcoded or sent anywhere except the provider you configured.
+
+## ⚙️ How It Works — Multi-Provider AI
+
+All four features go through one `AiRouter`. It holds your configured providers in priority order (Gemini → DeepSeek → ChatGPT), skips anything currently in a rate-limit cooldown, and tries each until one succeeds:
 
 ![Architecture diagram](architecture-diagram.svg)
 
-## Tech Stack
+## 🏗️ Tech Stack
 
 - **Kotlin** + **Jetpack Compose** (Material 3)
 - **Android `InputMethodService`** for the keyboard itself
@@ -50,9 +49,9 @@ tries each until one succeeds:
 - **AndroidX Security (`EncryptedSharedPreferences`)** for API key storage
 - **AndroidX Lifecycle ViewModel**, wired into `InputMethodService` via `ViewModelStoreOwner`
 
-## Project Structure
+## 📂 Project Structure
 
-```
+```text
 app/src/main/java/com/example/aikeyboard/
 ├── ai/                       # Provider-agnostic AI layer
 │   ├── AiRouter.kt           # Multi-provider failover orchestrator
@@ -89,7 +88,7 @@ app/src/main/java/com/example/aikeyboard/
    more for automatic failover.
 5. Switch to the AI Keyboard in any text field and try the toolbar icons.
 
-## Architecture Highlights for nerds
+## Architecture Highlights for Nerds
 
 A few decisions worth calling out if you're reading the code:
 
